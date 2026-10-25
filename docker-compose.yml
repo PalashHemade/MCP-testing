@@ -1,0 +1,23 @@
+name: logistics-ai-demo
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: logistics_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: logistics
+      POSTGRES_PASSWORD: logistics_dev_password
+      POSTGRES_DB: logistics_demo
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U logistics -d logistics_demo"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pgdata:
