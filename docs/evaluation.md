@@ -96,12 +96,29 @@ If you point this at a real `GEMINI_API_KEY` and chat requests come back as
 - Server logs (`uvicorn`'s stdout) always carry the real exception under the
   `planner_failed` log entry with a request id, even though the client only
   sees the generic message.
-- A `503 ... currently experiencing high demand` (or a `429` rate limit) is
-  transient, not a config problem - both the planner call and every
-  embedding call retry it once with backoff
+- A `503 ... currently experiencing high demand`, or a `504 DEADLINE_EXCEEDED
+  ... Deadline expired before operation could complete`, or a `429` rate
+  limit, are all transient and not a config problem - both the planner call
+  and every embedding call retry once with backoff
   (`app.utils.gemini_retry.call_with_retry`) before giving up. If you still
-  see one reach `planner_failed`, Google's model was unavailable for the
-  whole retry window; just resend the question.
+  see one reach `planner_failed`, Google's own infrastructure failed to
+  respond within its own deadline for the whole retry window - confirmed by
+  the structured `{"error": {"code": 504, ...}}` response body, which only
+  appears after `google-genai` actually receives an HTTP response; it is
+  not our client-side `GEMINI_HTTP_TIMEOUT_MS` firing (a client-side
+  timeout raises a different, unwrapped exception type instead). Just
+  resend the question, or try a different `GEMINI_MODEL` if a specific
+  model id keeps timing out - some model tiers/ids are less consistently
+  available than others.
+- The planner's prompt embeds a simplified form of each candidate tool's
+  input schema (`app.retrieval.schema_simplify.simplify_input_schema`),
+  not raw `model_json_schema()` - Pydantic's raw schema repeats `title` on
+  every field and wraps every optional field in `anyOf: [...,
+  {"type": "null"}]`, which cuts no information the model needs but
+  measurably shrinks the prompt (roughly 3,100 → 1,750 tokens for a
+  6-candidate call in this project), which helps with both latency and
+  cost. `GET /api/v1/tools` still serves the full raw schema to real API
+  consumers - only the Gemini-facing prompt uses the simplified form.
 - **If a request seems to hang with no new log line for a long time**
   (rather than failing fast with a `503`), that used to mean an unbounded
   wait: `google-genai`'s `HttpOptions.timeout` defaults to `None`, which

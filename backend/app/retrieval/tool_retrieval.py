@@ -12,6 +12,7 @@ from app.mcp.registry import TOOL_SPECS, ToolSpec
 from app.models.tool_metadata import ToolMetadata
 from app.planner.base import ToolCandidate
 from app.retrieval.embeddings import EmbeddingUnavailableError, get_embedding_service
+from app.retrieval.schema_simplify import simplify_input_schema
 
 _WORD_RE = re.compile(r"[a-z0-9]+")
 
@@ -25,7 +26,7 @@ def _to_candidate(spec: ToolSpec) -> ToolCandidate:
         name=spec.name,
         purpose=spec.purpose,
         description=spec.description,
-        input_schema=spec.input_model.model_json_schema(),
+        input_schema=simplify_input_schema(spec.input_model),
         limitations=spec.limitations,
         example_questions=spec.example_questions,
     )
