@@ -2,19 +2,23 @@ name: logistics-ai-demo
 
 services:
   postgres:
-    image: pgvector/pgvector:pg16
+    # Plain postgres, not pgvector/pgvector - the Node backend
+    # (backend-node/) uses OKF markdown + full-text search, not
+    # embeddings, so no vector extension is needed. See
+    # backend-node/docs/okf.md.
+    image: postgres:16
     container_name: logistics_postgres
     restart: unless-stopped
     environment:
       POSTGRES_USER: logistics
       POSTGRES_PASSWORD: logistics_dev_password
-      POSTGRES_DB: logistics_demo
+      POSTGRES_DB: logistics_demo_node
     ports:
       - "5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U logistics -d logistics_demo"]
+      test: ["CMD-SHELL", "pg_isready -U logistics -d logistics_demo_node"]
       interval: 5s
       timeout: 5s
       retries: 10

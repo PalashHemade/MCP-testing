@@ -1,0 +1,46 @@
+{
+  "name": "logistics-ai-backend-node",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Node.js/Express/TypeScript backend for the logistics AI chatbot - migrated from the original FastAPI implementation in ../backend. See docs/migration-from-fastapi.md.",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/server.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:migrate": "node-pg-migrate up -m migrations --envPath .env -d ADMIN_DATABASE_URL",
+    "db:rollback": "node-pg-migrate down -m migrations --envPath .env -d ADMIN_DATABASE_URL",
+    "db:status": "node-pg-migrate status -m migrations --envPath .env -d ADMIN_DATABASE_URL",
+    "db:seed": "tsx src/scripts/seedDemo.ts",
+    "db:reset": "tsx src/scripts/resetDevDb.ts",
+    "db:check": "tsx src/scripts/checkSchema.ts",
+    "knowledge:validate": "tsx src/scripts/validateKnowledge.ts",
+    "embeddings:rebuild": "echo 'Not applicable - this backend uses OKF knowledge files, not embeddings. See docs/okf.md.'",
+    "mcp:server": "tsx src/mcp/server.ts"
+  },
+  "dependencies": {
+    "@google/genai": "2.31.0",
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "cors": "2.8.5",
+    "decimal.js": "10.6.0",
+    "dotenv": "16.4.7",
+    "express": "5.3.0",
+    "gray-matter": "4.0.3",
+    "pg": "8.23.1",
+    "uuid": "11.1.1",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@types/cors": "2.8.19",
+    "@types/express": "5.0.6",
+    "@types/node": "22.19.0",
+    "@types/pg": "8.23.1",
+    "@types/uuid": "10.0.0",
+    "node-pg-migrate": "9.0.0",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3",
+    "vitest": "5.0.5"
+  }
+}

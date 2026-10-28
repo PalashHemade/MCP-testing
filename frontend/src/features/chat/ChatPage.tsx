@@ -3,11 +3,19 @@ import { ApiError } from '../../api/client'
 import { ChatWindow } from '../../components/ChatWindow'
 import { MessageInput } from '../../components/MessageInput'
 import { useChatMutation } from '../../hooks/useChat'
-import type { ChatMessage, DemoUserKey } from '../../types/api'
+import { usePersistedChatHistory } from '../../hooks/useChatHistory'
+import type { DemoUserKey } from '../../types/api'
 
 export function ChatPage({ demoUser }: { demoUser: DemoUserKey }) {
-  const [messages, setMessages] = useState<ChatMessage[]>([])
+  // Scoped to this demoUser's localStorage key - resumes their saved
+  // transcript on mount, and is cleared explicitly on logout (see
+  // App.tsx). Never shares state with another demoUser's key.
+  const [messages, setMessages] = usePersistedChatHistory(demoUser)
   const [error, setError] = useState<string | null>(null)
+  // Only set when the failure is one a plain retry can plausibly fix
+  // (timeout, 503/504, network blip) - see ApiError.retryable. A 4xx
+  // (bad input, expired/invalid session) would just fail the same way
+  // again, so that case gets Dismiss only, not a Retry button.
   const [lastFailedMessage, setLastFailedMessage] = useState<string | null>(null)
   const mutation = useChatMutation(demoUser)
 
@@ -27,7 +35,7 @@ export function ChatPage({ demoUser }: { demoUser: DemoUserKey }) {
     } catch (err) {
       const message = err instanceof ApiError ? err.message : 'Something went wrong contacting the backend.'
       setError(message)
-      setLastFailedMessage(content)
+      setLastFailedMessage(err instanceof ApiError && !err.retryable ? null : content)
     }
   }
 
