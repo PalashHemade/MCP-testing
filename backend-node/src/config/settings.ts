@@ -26,7 +26,7 @@ const EnvSchema = z.object({
     .transform((v) => v === "true"),
 
   GEMINI_API_KEY: z.string().optional().default(""),
-  GEMINI_MODEL: z.string().default("gemini-2.0-flash"),
+  GEMINI_MODEL: z.string().default("gemini-3.8-flash"),
 
   KNOWLEDGE_ROOT: z.string().default("../knowledge"),
   KNOWLEDGE_MAX_CONTEXT_CHARS: z
